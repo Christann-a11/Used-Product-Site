@@ -1,8 +1,8 @@
 
 :root {
-  --eco-green: #4CAF50;
-  --eco-green-dark: #3F8C43;
-  --eco-accent: #81C784;
+  --eco-green: #204155;
+  --eco-green-dark: #5a6288;
+  --eco-accent: #474f94;
   --eco-light: #E8F5E9;
   --eco-beige: #F9F7F3;
   --eco-brown: #6D4C41;
@@ -227,6 +227,176 @@ table.table thead {
   color: white;
 }
 
+/* Admin Page Layout */
+.admin-page {
+  padding-top: 40px;
+}
+
+/* Main Title */
+.admin-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.admin-subtitle {
+  margin-bottom: 25px;
+  color: #555;
+}
+
+/* Card styling */
+.listing-card {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  margin-bottom: 35px;
+}
+
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* Message alert */
+.alert-message {
+  padding: 10px;
+  background: #d1ffd6;
+  border: 1px solid #8ef29c;
+  color: #266e30;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+/* Form inputs */
+.input-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.styled-input,
+.styled-textarea {
+  padding: 12px 14px;
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.25s ease;
+  background: #fafafa;
+}
+
+.styled-input:focus,
+.styled-textarea:focus {
+  border-color: #4a9cff;
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(74,156,255,0.35);
+}
+
+.styled-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* Submit Button */
+.create-btn {
+  width: 100%;
+  background: #28a745;
+  border: none;
+  padding: 12px 16px;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.create-btn:hover {
+  background: #1f8b39;
+}
+
+/* Listings Section */
+.listings-container {
+  margin-top: 20px;
+}
+
+.no-ads {
+  color: #777;
+}
+
+.listing-item-card {
+  background: #f6fff6;
+  border: 1px solid #d7f7d8;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.listing-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.listing-price {
+  margin-top: 5px;
+  font-weight: 600;
+  color: #2a7f2a;
+}
+
+.listing-status {
+  margin-top: 3px;
+  color: #444;
+}
+
+/* Action buttons */
+.listing-actions button {
+  margin-left: 8px;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-edit {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #3e8e41;
+}
+
+.btn-disable {
+  background: #ffc107;
+  color: black;
+}
+
+.btn-disable:hover {
+  background: #e0a800;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #b02a37;
+}
 
 @media (max-width: 768px) {
   .market-search {
