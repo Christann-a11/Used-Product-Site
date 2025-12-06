@@ -1,42 +1,44 @@
 class Ads {
-    static modelName = 'ads';
+    static modelName = "ads";
 
-    constructor(id, title, description, price, status = 'active') {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.status = status;
-        this.modelName = Ads.modelName;
-    }
+constructor(id, title, description, price, status = 'active', expirationDate = null, userId = null) {
+    this.id = id;
+    this.title = title;
+    this.description = description;
+    this.price = price;
+    this.status = status;
+    this.expirationDate = expirationDate;
+    this.userId = userId;
+}
 
-    // Method to toggle the status between 'active' and 'disabled'
     toggleStatus() {
-        this.status = this.status === 'active' ? 'disabled' : 'active';
+        this.status = this.status === "active" ? "disabled" : "active";
     }
 
-    static fromJSON(json) {
-        if (!json) {
-            return null;
-        }
-        return new Ads(
-            json.id || json._id,
-            json.title,
-            json.description,
-            json.price,
-            json.status
-        );
-    }
-
-    toJSON() {
-        return {
-            id: this.id,
-            title: this.title,
-            description: this.description,
-            price: this.price,
-            status: this.status
-        };
-    }
+static fromJSON(json) 
+{
+    return new Ads(
+        json.id || json._id,
+        json.title,
+        json.description,
+        json.price,
+        json.status,
+        json.expirationDate,
+        json.userId
+    );
+}
+toJSON() 
+{
+    return {
+        id: this.id,
+        title: this.title,
+        description: this.description,
+        price: this.price,
+        status: this.status,
+        expirationDate: this.expirationDate,
+        userId: this.userId
+    };
+}
 }
 
 export default Ads;

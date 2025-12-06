@@ -1,14 +1,13 @@
-export const getModelName = (modal) => {
-  if (!modal) {
-    return '';
-  }
+export const getModelName = (modalInstance) => {
+  if (!modalInstance) return "";
 
-  const rawName =
-    modal.modelName ||
-    modal.constructor?.modelName ||
-    modal.name ||
-    modal.constructor?.name ||
-    '';
+  if (modalInstance.modelName) return modalInstance.modelName.toLowerCase();
 
-  return rawName.toLowerCase();
+  if (modalInstance.constructor?.modelName)
+    return modalInstance.constructor.modelName.toLowerCase();
+
+  if (modalInstance.constructor?.name)
+    return modalInstance.constructor.name.toLowerCase();
+
+  return "";
 };

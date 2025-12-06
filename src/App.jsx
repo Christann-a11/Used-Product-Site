@@ -5,6 +5,8 @@ import LoginComponent from './components/authentication/LoginComponent';
 import RegisterComponent from './components/authentication/RegisterComponent';
 import HomeComponent from './components/HomeComponent';
 import NotFoundComponent from './components/NotFoundComponent';
+import ManageAdsPage from "./components/ads/ManageAdsPage";
+
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
             <Route path="/login" element={<LoginComponent />} />
             <Route path="/register" element={<RegisterComponent />} />
             <Route path="*" element={<NotFoundComponent />} />
+            <Route path="/my-ads" element={<ProtectedRoute> <ManageAdsPage /> </ProtectedRoute> }
+/>
           </Routes>
       </main>
     </Router>

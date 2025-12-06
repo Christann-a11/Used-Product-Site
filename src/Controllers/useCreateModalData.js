@@ -1,54 +1,59 @@
-import { useState } from 'react';
-import { getModelName } from './utils/getModelName';
+import { useState } from "react";
+import { getModelName } from "./utils/getModelName";
 
-const useCreateModalData = (modal) => {
+export const useCreateModalData = (modalInstance) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const create = async (data) => {
     setLoading(true);
     setError(null);
 
-    const modelName = getModelName(modal);
+    const modelName = getModelName(modalInstance);
+
     if (!modelName) {
-      const errorMsg = 'Modal or modal name is not defined.';
-      console.error(errorMsg);
-      setError(new Error('Registration failed: Invalid configuration.'));
-      setLoading(false);
-      throw new Error(errorMsg);
+      const err = new Error("Invalid model configuration.");
+      setError(err);
+      throw err;
     }
 
     const url = `https://used-products-selling-site-backend-api.onrender.com/api/${modelName}`;
-    const payload = typeof data?.toJSON === 'function' ? data.toJSON() : data;
 
-    console.log(`Creating modal data for ${modelName} at: ${url}`);
-    console.log(`Input data:${JSON.stringify(payload)}`);
+    // Force usage of toJSON() to include expirationDate + userId
+    const payload =
+      typeof data?.toJSON === "function" ? data.toJSON() : data;
+
+    console.log(`POST → ${url}`);
+    console.log("Payload:", payload);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(url, {
-        method: 'POST',
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(url, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        let errorMsg = `Server error: ${response.status} ${response.statusText}`;
+      // Read backend error if request fails
+      if (!res.ok) {
+        let message = `Server error: ${res.status}`;
+
         try {
-          const errorBody = await response.json();
-          if (errorBody?.message) {
-            errorMsg = errorBody.message;
-          }
-        } catch (parseErr) {
-          console.warn('Failed to parse error response:', parseErr);
-        }
-        throw new Error(errorMsg);
+          const errJson = await res.json();
+          if (errJson?.message) message = errJson.message;
+        } catch (err) {}
+
+        throw new Error(message);
       }
 
-      return await response.json();
+      // Successful response: return created object
+      return await res.json();
     } catch (err) {
+      console.error("Create request error:", err);
       setError(err);
       throw err;
     } finally {
@@ -59,5 +64,4 @@ const useCreateModalData = (modal) => {
   return { create, loading, error };
 };
 
-export { useCreateModalData };
 export default useCreateModalData;

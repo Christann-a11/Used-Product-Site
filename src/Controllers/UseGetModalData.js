@@ -1,49 +1,52 @@
 import { useState, useEffect } from 'react';
 import { getModelName } from './utils/getModelName';
 
-export const useGetModalData  = (modal) => {
- const  [data, setData] = useState([]);
- const  [loading, setLoading]= useState(true);
- const  [error, setError] = useState(null);
- 
- const modelName = getModelName(modal);
- const url = `https://used-products-selling-site-backend-api.onrender.com/api/${modelName}`;
+export const useGetModalData = (modalInstance) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
- useEffect(() => {
-   const fetchData = async () => {
-     setLoading(true);
-     setError(null);
-     try {
-       const token = localStorage.getItem('token');
-       if (!token) {
-         throw new Error('Not authorized, no token');
-       }
-       const response = await fetch(url, {
-         headers: {
-           Authorization: `Bearer ${token}`,
-         },
-       });
-       if (!response.ok) {
-         throw new Error(`Server error: ${response.status} ${response.statusText}`);
-       }
+  const modelName = getModelName(modalInstance);
+  const url = `https://used-products-selling-site-backend-api.onrender.com/api/${modelName}`;
 
-       const result = await response.json();
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
-       // Transform data into the modal format and update state
-       const transformedData = result.map(item => modal.constructor.fromJSON(item));
-       setData(transformedData);
+      try {
+        const token = localStorage.getItem("token");
 
-     } catch (error) {
-       console.error("Error fetching modal data:", error);
-       setError(error);
-     } finally {
-         setLoading(false);
-     }
-   };
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
 
-   fetchData();
- }, [url]); // Rerun effect if url changes
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
 
- return { data, loading, error };
+        const result = await response.json();
 
-}
+        // Use the class, not the instance
+        const ModelClass = modalInstance.constructor;
+        const transformed = result.map((item) => ModelClass.fromJSON(item));
+
+        setData(transformed);
+
+      } catch (err) {
+        console.error("Error fetching model data:", err);
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [url]);
+
+  return { data, loading, error };
+};

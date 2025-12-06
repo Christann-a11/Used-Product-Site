@@ -1,20 +1,18 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import NavbarComponent from '../authentication/NavbarComponent';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import NavbarComponent from "../authentication/NavbarComponent";
 
-const RouotLayout = () => {
-    return (
-        <>
-              {/* The Navbar is now here, so it will appear on every page */}
+const RootLayout = () => {
+  return (
+    <>
       <NavbarComponent />
-       <main className="container mt-5 pt-3">
-        <Outlet />  {/* Renders the matched child route inside the container */}
-       </main>
-      
-        </>
-    );
+      <main className="app-main">
+        <div className="container py-4">
+          <Outlet />
+        </div>
+      </main>
+    </>
+  );
 };
 
-export default RouotLayout;
-
- 
+export default RootLayout;

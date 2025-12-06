@@ -1,67 +1,94 @@
-import { useState, useEffect } from 'react';
-import Authentication from "../modal/Authentication";
+import { useCallback, useState } from "react";
+import { API_BASE } from "../config";
 
-export const useAuthentication = () => {
-    const [authentication, setAuthentication] = useState(null);
-    const [login, setLogin] = useState(() => async () => false);
-    const [logout, setLogout] = useState(() => () => {});
-    const [isAuthenticated, setIsAuthenticated] = useState(() => () => false);
+export function useAuthentication() {
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-    const authEndPoint = 'https://used-products-selling-site-backend-api.onrender.com/auth/signin';
+  // LOGIN using username OR email
+  const login = useCallback(async (emailOrUsername, password) => {
+    setError(null);
+    setLoading(true);
 
-    useEffect(() => {
-        const loginFunction = async (auth) => {
-            try {
-                const response = await fetch(authEndPoint, {  
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(auth)  
-                });
+    try {
+      const res = await fetch(`${API_BASE}/auth/signin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: emailOrUsername,   // backend supports email OR username
+          username: emailOrUsername,
+          password,
+        }),
+      });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const token = data.token;
+      if (!res.ok) throw new Error("Invalid login credentials");
 
-                    const authInstance = new Authentication(token);
-                    setAuthentication(authInstance);
+      const data = await res.json();
 
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error("Login failed:", error);
-                return false;
-            }
-        };
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+      localStorage.setItem("username", data.username);
 
-        const logoutFunction = () => {
-            if (authentication) {
-                authentication.logout();
-                setAuthentication(new Authentication(null));
-            }
-        };
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-        const isAuthFunction = () => {
-            return authentication ? authentication.isAuthenticated() : false;
-        };
+  // REGISTER user with full marketplace fields
+  const register = useCallback(
+    async (firstName, lastName, username, email, password) => {
+      setError(null);
+      setLoading(true);
 
-        // expose the functions outside the effect
-        setLogin(() => loginFunction);
-        setLogout(() => logoutFunction);
-        setIsAuthenticated(() => isAuthFunction);
+      try {
+        const res = await fetch(`${API_BASE}/api/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            username,
+            email,
+            password,
+          }),
+        });
 
-        const savedToken = localStorage.getItem("token");
-        if (savedToken && !authentication) {
-            setAuthentication(new Authentication(savedToken));
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || "Registration failed");
         }
-    }, [authentication]);
 
-    return {
-        login,
-        logout,
-        isAuthenticated,
-        authentication,
-    };
-};
+        return true;
+      } catch (err) {
+        setError(err.message);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  // LOGOUT
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+  };
+
+  // CHECK IF USER IS LOGGED IN
+  const isAuthenticated = () => !!localStorage.getItem("token");
+
+  return {
+    login,
+    register,
+    logout,
+    isAuthenticated,
+    error,
+    loading,
+  };
+}

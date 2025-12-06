@@ -1,132 +1,134 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 
+const AdsForm = ({ initialValues, mode, isOpen, title, onSubmit, onCancel }) => {
+  const [formValues, setFormValues] = useState({
+    title: "",
+    description: "",
+    price: "",
+    status: "active",
+    expirationDate: "",
+  });
 
-const defaultValues = {
-  title: '',
-  description: '',
-  price: '',
-  status: 'active',
-};
-
-const AdsForm = ({ initialValues = null, mode = 'create', onSubmit, onCancel, isOpen = false, title = 'Ad Form' }) => {
-  const [formValues, setFormValues] = useState(() => ({
-    ...defaultValues,
-    ...(initialValues || {}),
-  }));
-  const [errors, setErrors] = useState({});
-
+  // Load values when editing
   useEffect(() => {
     if (initialValues) {
-      setFormValues({ ...defaultValues, ...initialValues });
-    } else if (mode === 'create') {
-      setFormValues({ ...defaultValues });
+      setFormValues({
+        title: initialValues.title || "",
+        description: initialValues.description || "",
+        price: initialValues.price || "",
+        status: initialValues.status || "active",
+        expirationDate: initialValues.expirationDate
+          ? initialValues.expirationDate.substring(0, 10) // format yyyy-mm-dd
+          : "",
+      });
     }
-  }, [initialValues, mode]);
+  }, [initialValues]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues(prev => ({ ...prev, [name]: value }));
-  };
-
-  const validate = () => {
-    const newErrors = {};
-    if (!formValues.title.trim()) newErrors.title = 'Title is required';
-    if (!formValues.description.trim()) newErrors.description = 'Description is required';
-    if (!formValues.price || Number(formValues.price) <= 0) newErrors.price = 'Price must be greater than 0';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!validate()) return;
-    onSubmit?.({
+  // Handle input changes
+  const handleChange = (e) => {
+    setFormValues({
       ...formValues,
-      price: Number(formValues.price),
+      [e.target.name]: e.target.value,
     });
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  // Submit form
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!formValues.expirationDate) {
+      alert("Expiration date is required.");
+      return;
+    }
+
+    onSubmit(formValues);
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-modal="true" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">{title}</h5>
-            <button type="button" className="btn-close" aria-label="Close" onClick={onCancel}></button>
-          </div>
-          <form onSubmit={handleSubmit} className="text-start">
-            <div className="modal-body text-start">
-              <div className="mb-3">
-                <label htmlFor="title" className="form-label">Title</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  className={`form-control ${errors.title ? 'is-invalid' : ''}`}
-                  value={formValues.title}
-                  onChange={handleChange}
-                />
-                {errors.title && <div className="invalid-feedback">{errors.title}</div>}
-              </div>
+    <div className="card shadow p-3 mb-4">
+      <h5 className="mb-3">{title}</h5>
 
-              <div className="col">
-                <label htmlFor="description" className="form-label">Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  className={`form-control ${errors.description ? 'is-invalid' : ''}`}
-                  value={formValues.description}
-                  onChange={handleChange}
-                  rows="3"
-                />
-                {errors.description && <div className="invalid-feedback">{errors.description}</div>}
-              </div>
-
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="price" className="form-label">Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    id="price"
-                    name="price"
-                    className={`form-control ${errors.price ? 'is-invalid' : ''}`}
-                    value={formValues.price}
-                    onChange={handleChange}
-                  />
-                  {errors.price && <div className="invalid-feedback">{errors.price}</div>}
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="status" className="form-label">Status</label>
-                <select
-                  id="status"
-                  name="status"
-                  className="form-select"
-                  value={formValues.status}
-                  onChange={handleChange}
-                >
-                  <option value="active">Active</option>
-                  <option value="disabled">Disabled</option>
-                </select>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary">
-                {mode === 'edit' ? 'Save Changes' : 'Create Ad'}
-              </button>
-            </div>
-          </form>
+      <form onSubmit={handleSubmit}>
+        {/* Title */}
+        <div className="mb-3">
+          <label className="form-label">Title</label>
+          <input
+            type="text"
+            name="title"
+            className="form-control"
+            value={formValues.title}
+            onChange={handleChange}
+            required
+          />
         </div>
-      </div>
+
+        {/* Description */}
+        <div className="mb-3">
+          <label className="form-label">Description</label>
+          <textarea
+            name="description"
+            rows="3"
+            className="form-control"
+            value={formValues.description}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        {/* Price */}
+        <div className="mb-3">
+          <label className="form-label">Price ($)</label>
+          <input
+            type="number"
+            name="price"
+            className="form-control"
+            value={formValues.price}
+            onChange={handleChange}
+            min="0"
+            required
+          />
+        </div>
+
+        {/* Status */}
+        <div className="mb-3">
+          <label className="form-label">Status</label>
+          <select
+            name="status"
+            className="form-select"
+            value={formValues.status}
+            onChange={handleChange}
+          >
+            <option value="active">Active</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </div>
+
+        {/* EXPIRATION DATE — REQUIRED BY BACKEND */}
+        <div className="mb-3">
+          <label className="form-label">Expiration Date</label>
+          <input
+            type="date"
+            name="expirationDate"
+            className="form-control"
+            value={formValues.expirationDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="d-flex justify-content-end gap-2">
+          <button type="button" className="btn btn-secondary" onClick={onCancel}>
+            Cancel
+          </button>
+
+          <button type="submit" className="btn btn-primary">
+            {mode === "edit" ? "Update Ad" : "Create Ad"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
