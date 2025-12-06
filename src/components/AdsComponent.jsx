@@ -1,93 +1,100 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import Ads from "../modal/Ads";
 import { useGetModalData } from "../Controllers/UseGetModalData";
+import {
+  askQuestion,
+  getQuestions,
+  answerQuestion,
+} from "../api/questions";
 
 const AdsComponent = () => {
   const { data: ads, loading, error } = useGetModalData(new Ads());
   const [selectedAd, setSelectedAd] = useState(null);
   const [question, setQuestion] = useState("");
+  const [questions, setQuestions] = useState([]);
 
-  const handleAskQuestion = (ad) => setSelectedAd(ad);
+  // Load all Q&A for an ad
+  const loadQuestions = async (adId) => {
+    try {
+      const data = await getQuestions(adId);
+      setQuestions(data);
+    } catch (err) {
+      console.error("Error loading questions:", err);
+    }
+  };
+
+  const handleAskQuestion = (ad) => {
+    setSelectedAd(ad);
+    loadQuestions(ad._id || ad.id);
+  };
+
+  const handleSendQuestion = async (e) => {
+    e.preventDefault();
+    if (!question.trim()) return;
+
+    try {
+      await askQuestion(selectedAd._id || selectedAd.id, question);
+      alert("Question sent!");
+      setQuestion("");
+      loadQuestions(selectedAd._id || selectedAd.id);
+    } catch (err) {
+      alert("Failed: " + err.message);
+    }
+  };
 
   const handleCloseModal = () => {
     setSelectedAd(null);
     setQuestion("");
+    setQuestions([]);
   };
 
-  const handleSendQuestion = (e) => {
+  const handleAnswer = async (e, qId) => {
     e.preventDefault();
-    if (!question.trim()) return;
+    const token = localStorage.getItem("token");
 
-    alert(`Your question about "${selectedAd.title}" has been sent!`);
-    handleCloseModal();
+    const answer = e.target.elements["answer"].value;
+
+    try {
+      await answerQuestion(qId, answer, token);
+      alert("Answer posted!");
+
+      loadQuestions(selectedAd._id || selectedAd.id);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  // ---------------------------
-  //  LOADING & ERROR STATES
-  // ---------------------------
-  if (loading) {
-    return <p className="text-center mt-5">Loading ads…</p>;
-  }
-
-  if (error) {
-    return (
-      <p className="text-center text-danger mt-5">
-        Error loading ads: {error.message}
-      </p>
-    );
-  }
+  if (loading) return <p className="text-center mt-5">Loading ads…</p>;
+  if (error) return <p className="text-danger text-center">Error: {error.message}</p>;
 
   return (
     <div>
-      <div className="market-hero">
-        <h1 className="market-hero-title">Marketplace</h1>
-        <p className="market-hero-subtitle">
-          Browse used items from other users. Find great deals on things you
-          actually need.
-        </p>
-      </div>
+      <h1 className="market-hero-title">Marketplace</h1>
+      <p className="market-hero-subtitle">Find used products and great deals.</p>
 
-      {/* If no ads exist ---------------------------- */}
-      {ads.length === 0 && (
-        <div className="text-center mt-5">
-          <h4>No ads found</h4>
-          <p>Be the first to post something for sale!</p>
-
-          <Link to="/admin" className="btn market-btn-primary">
-            Create Your First Ad
-          </Link>
-        </div>
-      )}
-
-      {/* Ads Grid ---------------------------------- */}
       <div className="row g-4">
         {ads.map((ad) => (
-          <div className="col-12 col-sm-6 col-lg-4" key={ad.id}>
+          <div className="col-12 col-sm-6 col-lg-4" key={ad.id || ad._id}>
             <div className="product-card">
               <div className="product-card-body">
-                {/* Placeholder image */}
                 <div
                   style={{
-                    background: "#e5e7eb",
-                    borderRadius: "14px",
                     height: "170px",
-                    marginBottom: "0.8rem",
+                    background: "#e5e7eb",
+                    borderRadius: "12px",
+                    marginBottom: "1rem",
                   }}
-                />
+                ></div>
 
-                <div className="d-flex justify-content-between align-items-center mb-1">
-                  <h2 className="product-title mb-0">{ad.title}</h2>
-                </div>
-
-                <p className="product-meta mb-2">{ad.description}</p>
-                <p className="product-price mb-0">${ad.price}</p>
+                <h2 className="product-title">{ad.title}</h2>
+                <p>{ad.description}</p>
+                <p className="product-price">${ad.price}</p>
               </div>
 
               <div className="product-card-footer">
                 <button
-                  className="btn btn-sm product-btn-view"
                   onClick={() => handleAskQuestion(ad)}
+                  className="btn btn-sm product-btn-view"
                 >
                   View details
                 </button>
@@ -97,55 +104,76 @@ const AdsComponent = () => {
         ))}
       </div>
 
-      {/* Modal ------------------------------------ */}
+      {/* Modal */}
       {selectedAd && (
         <div className="modal fade show" style={{ display: "block" }}>
-          <div
-            className="modal-backdrop fade show"
-            onClick={handleCloseModal}
-          ></div>
+          <div className="modal-backdrop fade show" onClick={handleCloseModal}></div>
 
-          <div
-            className="modal-dialog modal-dialog-centered"
-            style={{ zIndex: 1060 }}
-          >
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
+
               <div className="modal-header">
-                <h5 className="modal-title">
-                  Ask a question about: {selectedAd.title}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleCloseModal}
-                />
+                <h5>{selectedAd.title}</h5>
+                <button className="btn-close" onClick={handleCloseModal}></button>
               </div>
 
-              <form onSubmit={handleSendQuestion}>
-                <div className="modal-body">
+              <div className="modal-body">
+                <p><strong>Price:</strong> ${selectedAd.price}</p>
+                <p><strong>Description:</strong> {selectedAd.description}</p>
+
+                <hr />
+
+                {/* Show Questions */}
+                <h6>Questions</h6>
+                {questions.length === 0 && <p>No questions yet.</p>}
+
+                {questions.map((q) => (
+                  <div key={q._id} className="border p-2 rounded mb-2">
+                    <strong>Q:</strong> {q.text}
+
+                    {q.answer ? (
+                      <p className="text-success">
+                        <strong>A:</strong> {q.answer}
+                      </p>
+                    ) : (
+                      // Only ad owner can answer
+                      selectedAd.owner === localStorage.getItem("userId") && (
+                        <form
+                          onSubmit={(e) => handleAnswer(e, q._id)}
+                          className="mt-2"
+                        >
+                          <input
+                            name="answer"
+                            className="form-control mb-2"
+                            placeholder="Type your answer..."
+                          />
+                          <button className="btn btn-primary btn-sm">
+                            Submit Answer
+                          </button>
+                        </form>
+                      )
+                    )}
+                  </div>
+                ))}
+
+                <hr />
+
+                {/* Ask new question */}
+                <form onSubmit={handleSendQuestion}>
                   <textarea
                     className="form-control"
-                    rows="4"
-                    placeholder="Type your question…"
+                    rows="3"
+                    placeholder="Ask a question…"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                   ></textarea>
-                </div>
 
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={handleCloseModal}
-                  >
-                    Close
-                  </button>
-
-                  <button type="submit" className="btn market-btn-primary">
+                  <button className="btn btn-primary mt-2 w-100">
                     Send Question
                   </button>
-                </div>
-              </form>
+                </form>
+              </div>
+
             </div>
           </div>
         </div>

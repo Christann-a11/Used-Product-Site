@@ -1,94 +1,45 @@
-import { useCallback, useState } from "react";
-import { API_BASE } from "../config";
+// src/Controllers/UseAuthentication.js
+import { useState, useEffect } from "react";
 
-export function useAuthentication() {
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+export const useAuthentication = () => {
+  // Store whether user is authenticated
+  const [auth, setAuth] = useState(() => {
+    return !!localStorage.getItem("token");
+  });
 
-  // LOGIN using username OR email
-  const login = useCallback(async (emailOrUsername, password) => {
-    setError(null);
-    setLoading(true);
+  // Listen for global "auth-changed" events
+  useEffect(() => {
+    const handler = () => {
+      setAuth(!!localStorage.getItem("token"));
+    };
 
-    try {
-      const res = await fetch(`${API_BASE}/auth/signin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: emailOrUsername,   // backend supports email OR username
-          username: emailOrUsername,
-          password,
-        }),
-      });
+    window.addEventListener("auth-changed", handler);
 
-      if (!res.ok) throw new Error("Invalid login credentials");
-
-      const data = await res.json();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      localStorage.setItem("username", data.username);
-
-      return true;
-    } catch (err) {
-      setError(err.message);
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    return () => window.removeEventListener("auth-changed", handler);
   }, []);
 
-  // REGISTER user with full marketplace fields
-  const register = useCallback(
-    async (firstName, lastName, username, email, password) => {
-      setError(null);
-      setLoading(true);
+  // Login → store credentials + broadcast event
+  const login = (token, userId) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("userId", userId);
 
-      try {
-        const res = await fetch(`${API_BASE}/api/users`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firstName,
-            lastName,
-            username,
-            email,
-            password,
-          }),
-        });
+    window.dispatchEvent(new Event("auth-changed"));
+  };
 
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || "Registration failed");
-        }
-
-        return true;
-      } catch (err) {
-        setError(err.message);
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  // LOGOUT
+  // Logout → clear credentials + broadcast event
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
-    localStorage.removeItem("username");
+
+    window.dispatchEvent(new Event("auth-changed"));
   };
 
-  // CHECK IF USER IS LOGGED IN
-  const isAuthenticated = () => !!localStorage.getItem("token");
+  // Check authentication status
+  const isAuthenticated = () => auth;
 
   return {
-    login,
-    register,
-    logout,
     isAuthenticated,
-    error,
-    loading,
+    login,
+    logout,
   };
-}
+};

@@ -1,261 +1,240 @@
-/* --------------------------------------------------------
-   GLOBAL DESIGN TOKENS (Style Guide)
----------------------------------------------------------*/
 
 :root {
-  --primary: #1e3a5a;
-  --secondary: #009981;
-  --accent: #f37316;
-
-  --text-dark: #1f2937;
-  --text-muted: #6b7280;
-
-  --bg-light: #f4f5f7;
-  --bg-white: #ffffff;
-  --navbar-bg: #2f3b45;
-
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --radius-pill: 999px;
-
-  --shadow-soft: 0px 6px 20px rgba(0, 0, 0, 0.12);
+  --eco-green: #4CAF50;
+  --eco-green-dark: #3F8C43;
+  --eco-accent: #81C784;
+  --eco-light: #E8F5E9;
+  --eco-beige: #F9F7F3;
+  --eco-brown: #6D4C41;
+  --eco-text-dark: #2E2E2E;
+  --eco-text-light: #666;
+  --eco-border: #DAD7D0;
+  --radius: 14px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --transition: all 0.25s ease;
 }
-
-/* Load fonts */
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Roboto:wght@400;500&display=swap");
-
-/* --------------------------------------------------------
-   GLOBAL RESETS
----------------------------------------------------------*/
 
 body {
+  font-family: "Inter", "Poppins", sans-serif;
+  background: var(--eco-beige);
+  color: var(--eco-text-dark);
   margin: 0;
-  font-family: "Roboto", sans-serif;
-  background: var(--bg-light);
-  color: var(--text-dark);
+  padding: 0;
 }
 
-h1, h2, h3, h4 {
-  font-family: "Montserrat", sans-serif;
-  font-weight: 600;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-}
-
-/* Offset for fixed navbar */
-.app-main {
-  padding-top: 85px;
-}
-
-/* --------------------------------------------------------
-   NAVIGATION BAR (matches PNG exactly)
----------------------------------------------------------*/
 
 .market-navbar {
-  background: var(--navbar-bg);
-  padding: 0.75rem 1rem;
-  box-shadow: var(--shadow-soft);
+  background: var(--eco-green);
+  padding: 0.8rem 0;
+  box-shadow: var(--shadow);
 }
 
 .market-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--primary);
-  font-family: "Montserrat", sans-serif;
   font-weight: 700;
-  font-size: 1.25rem;
+  color: white !important;
+  font-size: 1.4rem;
 }
 
-.market-search {
-  flex: 1;
-  max-width: 380px;
-  background: #474f57;
-  border-radius: var(--radius-pill);
-  padding: 0.4rem 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.market-logo .logo-icon {
+  margin-right: 5px;
 }
 
-.market-search input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #e5e7eb;
-  flex: 1;
-}
-
-.search-icon {
-  color: #cfd2d4;
-}
-
-/* nav links */
 .market-nav-link {
-  color: #e5e7eb;
+  color: white !important;
   font-weight: 500;
+  transition: var(--transition);
 }
 
 .market-nav-link:hover {
-  color: #ffffff;
+  opacity: 0.8;
 }
-
-/* Profile icon */
-.profile-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #3f4750;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-/* --------------------------------------------------------
-   BUTTONS
----------------------------------------------------------*/
 
 .market-btn-primary {
-  background: var(--primary);
-  color: white;
-  padding: 0.45rem 1.3rem;
-  border-radius: var(--radius-pill);
-  font-weight: 600;
+  background: white;
+  color: var(--eco-green) !important;
+  border-radius: var(--radius);
+  padding: 6px 16px;
+  border: none;
+  transition: var(--transition);
 }
 
 .market-btn-primary:hover {
-  background: #244c7d;
+  background: var(--eco-light);
 }
 
 .market-btn-secondary {
-  background: var(--accent);
-  color: white;
-  padding: 0.45rem 1.3rem;
-  border-radius: var(--radius-pill);
-  font-weight: 600;
+  background: var(--eco-green-dark);
+  color: white !important;
+  border-radius: var(--radius);
+  border: none;
+  padding: 6px 16px;
 }
 
-.market-btn-secondary:hover {
-  background: #d86212;
-}
-
-/* --------------------------------------------------------
-   PRODUCT CARDS — EXACT MATCH TO STYLE GUIDE PNG
----------------------------------------------------------*/
-
-.product-card {
-  background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-}
-
-.product-card-body {
-  padding: 1rem 1.2rem 0.5rem;
-}
-
-.product-title {
-  font-family: "Montserrat";
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.product-price {
-  font-weight: 600;
-  color: var(--primary);
-}
-
-/* image placeholder – same rounded rectangle in PNG */
-.product-image-placeholder {
-  background: #e5e7eb;
-  border-radius: 14px;
-  height: 170px;
-  width: 100%;
-  margin-bottom: 1rem;
-}
-
-/* Product footer buttons */
-.product-card-footer {
-  padding: 0.5rem 1.2rem 1rem;
-}
-
-.product-btn-view {
-  background-color: var(--secondary);
-  border-radius: var(--radius-pill);
-  color: white;
-  padding: 0.4rem 1rem;
-  font-size: 0.85rem;
-}
-
-.product-btn-view:hover {
-  background-color: #0e7a67;
-}
-
-/* Orange secondary button */
-.product-btn-secondary {
-  background-color: var(--accent);
-  border-radius: var(--radius-pill);
-  color: white;
-  padding: 0.45rem 1.4rem;
-  width: 100%;
-}
-
-.product-btn-secondary:hover {
-  background-color: #d65d10;
-}
-
-/* --------------------------------------------------------
-   BADGES
----------------------------------------------------------*/
-
-.badge-market-new {
-  background: var(--secondary);
-  color: white;
-  border-radius: var(--radius-pill);
-  padding: 0.2rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.badge-market-used {
-  background: #6b7280;
-  color: white;
-  border-radius: var(--radius-pill);
-  padding: 0.2rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* NAV LINKS ORANGE (#F37316) */
-.market-nav-link {
-  color: #f37316 !important;
-  font-weight: 600;
-}
-
-/* Hover + active = slightly darker orange */
-.market-nav-link:hover,
-.market-nav-link.active {
-  color: #d65d10 !important;
-}
-
-/* Logout button (it appears as a link) */
-.market-btn-secondary {
-  background: transparent !important;
-  color: #f37316 !important;
+.market-btn-accent {
+  background: var(--eco-brown);
+  color: white !important;
+  border-radius: var(--radius);
+  padding: 6px 16px;
   border: none;
 }
 
-.market-btn-secondary:hover {
-  color: #d65d10 !important;
+
+.market-search {
+  position: relative;
+  width: 340px;
+}
+
+.market-search-input {
+  border-radius: 50px;
+  border: none;
+  padding-left: 38px;
+  height: 40px;
+  box-shadow: var(--shadow);
+}
+
+.search-icon {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+}
+
+
+.product-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  cursor: pointer;
+  border: 1px solid var(--eco-border);
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.product-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--eco-text-dark);
+}
+
+.product-price {
+  color: var(--eco-green-dark);
+  font-weight: bold;
+}
+
+.product-btn-view {
+  background: var(--eco-green);
+  color: white !important;
+  border: none;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+
+.product-btn-view:hover {
+  background: var(--eco-green-dark);
+}
+
+
+.modal-content {
+  border-radius: var(--radius);
+  border: none;
+  box-shadow: var(--shadow);
+}
+
+.modal-header {
+  background: var(--eco-light);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.modal-footer {
+  background: var(--eco-light);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+
+
+.panel {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--eco-border);
+  margin-bottom: 1rem;
+}
+
+.my-ads-item {
+  display: flex;
+  justify-content: space-between;
+  background: var(--eco-light);
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  border: 1px solid var(--eco-border);
+}
+
+.my-ads-title {
+  font-weight: 600;
+  color: var(--eco-text-dark);
+}
+
+
+.form-control {
+  border-radius: var(--radius);
+  border: 1px solid var(--eco-border);
+  padding: 10px;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--eco-green);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.25);
+}
+
+.btn-primary {
+  background: var(--eco-green) !important;
+  border: none;
+  border-radius: var(--radius);
+}
+
+.btn-primary:hover {
+  background: var(--eco-green-dark) !important;
+}
+
+.profile-save-btn {
+  background: var(--eco-green);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: none;
+}
+
+
+table.table {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+table.table thead {
+  background: var(--eco-green);
+  color: white;
+}
+
+
+@media (max-width: 768px) {
+  .market-search {
+    width: 100%;
+  }
+
+  .my-ads-item {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

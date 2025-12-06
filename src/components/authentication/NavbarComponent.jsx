@@ -1,3 +1,4 @@
+// src/components/layout/NavbarComponent.jsx
 import React from "react";
 import { NavLink, Link } from "react-router-dom";
 import { useAuthentication } from "../../Controllers/UseAuthentication";
@@ -7,8 +8,10 @@ const NavbarComponent = () => {
 
   const handleLogout = () => {
     logout();
-    window.location.href = "/login"; // force re-render and redirect
+    window.location.href = "/login"; // redirect and re-render
   };
+
+  const authed = isAuthenticated();
 
   return (
     <nav className="navbar navbar-expand-lg market-navbar fixed-top">
@@ -41,17 +44,17 @@ const NavbarComponent = () => {
             />
           </form>
 
-          {/* Nav section */}
           <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
 
+            {/* Browse Ads - Always visible */}
             <li className="nav-item">
               <NavLink to="/ads" className="nav-link market-nav-link">
                 Browse Ads
               </NavLink>
             </li>
 
-            {/* Manage Listings - only for logged in users */}
-            {isAuthenticated() && (
+            {/* Manage Listings - Only if logged in */}
+            {authed && (
               <li className="nav-item d-none d-lg-block">
                 <NavLink to="/admin" className="btn btn-sm market-btn-primary">
                   Manage Listings
@@ -59,8 +62,17 @@ const NavbarComponent = () => {
               </li>
             )}
 
-            {/* Not logged in → Show Login / Signup */}
-            {!isAuthenticated() && (
+            {/* Profile Page */}
+            {authed && (
+              <li className="nav-item">
+                <NavLink to="/profile" className="nav-link market-nav-link">
+                  Profile
+                </NavLink>
+              </li>
+            )}
+
+            {/* Login / Signup */}
+            {!authed && (
               <>
                 <li className="nav-item">
                   <NavLink to="/login" className="nav-link market-nav-link">
@@ -69,15 +81,18 @@ const NavbarComponent = () => {
                 </li>
 
                 <li className="nav-item">
-                  <NavLink to="/register" className="btn btn-sm market-btn-accent">
+                  <NavLink
+                    to="/register"
+                    className="btn btn-sm market-btn-accent"
+                  >
                     Sign Up
                   </NavLink>
                 </li>
               </>
             )}
 
-            {/* Logged in → Show Logout */}
-            {isAuthenticated() && (
+            {/* Logout */}
+            {authed && (
               <li className="nav-item">
                 <button
                   type="button"
@@ -89,9 +104,12 @@ const NavbarComponent = () => {
               </li>
             )}
 
-            <li className="nav-item d-none d-lg-flex align-items-center ms-1">
-              <span className="profile-circle">👤</span>
-            </li>
+            {/* Profile Icon */}
+            {authed && (
+              <li className="nav-item d-none d-lg-flex align-items-center ms-1">
+                <span className="profile-circle">👤</span>
+              </li>
+            )}
           </ul>
         </div>
       </div>

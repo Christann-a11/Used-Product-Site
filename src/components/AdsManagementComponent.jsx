@@ -1,269 +1,276 @@
-import React, { useState, useEffect } from "react";
-import Ads from "../modal/Ads";
-import { useGetModalData } from "../Controllers/UseGetModalData";
-import useCreateModalData from "../Controllers/useCreateModalData";
-import { useUpdateModalData } from "../Controllers/useUpdateModalData";
-import { useDeleteModalData } from "../Controllers/useDeleteModalData";
-import AdsForm from "./forms/AdsForm";
+// src/components/AdsManagementComponent.jsx
+import React, { useEffect, useState } from "react";
+import { API_BASE } from "../config";
 import { useAuthentication } from "../Controllers/UseAuthentication";
 import { useNavigate } from "react-router-dom";
 
-const LoadingComponent = ({ message }) => <p>Loading {message}...</p>;
-const ErrorComponent = ({ message, error }) => (
-  <p>Error loading {message}: {error.message}</p>
-);
+const emptyForm = {
+  title: "",
+  description: "",
+  price: "",
+};
 
 const AdsManagementComponent = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthentication();
+  const authed = isAuthenticated();
 
+  // 🔐 Protect page
   useEffect(() => {
-    if (!isAuthenticated()) {
-      alert("You must be logged in to manage ads.");
+    if (!authed) {
       navigate("/login");
     }
-  }, []);
+  }, [authed, navigate]);
 
-  const { data: fetchedAds, loading: getLoading, error: getError } =
-    useGetModalData(new Ads());
-  const {
-    create: createAdRequest,
-    loading: createLoading,
-    error: createError,
-  } = useCreateModalData(new Ads());
-  const {
-    updateData,
-    loading: updateLoading,
-    error: updateError,
-  } = useUpdateModalData(new Ads());
-  const {
-    deleteData,
-    loading: deleteLoading,
-    error: deleteError,
-  } = useDeleteModalData(new Ads());
+  if (!authed) return null;
 
   const [ads, setAds] = useState([]);
-  const [filteredAds, setFilteredAds] = useState([]);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [formMode, setFormMode] = useState("create");
-  const [activeAd, setActiveAd] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Load ads from backend
-  useEffect(() => {
-    if (fetchedAds) {
-      setAds(fetchedAds);
-      setFilteredAds(fetchedAds);
-    }
-  }, [fetchedAds]);
+  const token = localStorage.getItem("token");
 
-  const loading = getLoading || createLoading || updateLoading || deleteLoading;
-  const error = getError || createError || updateError || deleteError;
-
-  if (loading && !filteredAds.length) {
-    return <LoadingComponent message="Ads" />;
-  }
-
-  if (error) {
-    return <ErrorComponent message="Ads" error={error} />;
-  }
-
-  // Open create form
-  const handleAdd = () => {
-    setFormMode("create");
-    setActiveAd(null);
-    setIsFormVisible(true);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  // Load ad into edit form
-  const handleUpdate = (adId) => {
-    const foundAd = ads.find((ad) => (ad.id || ad._id) === adId);
-    if (!foundAd) return;
+  // 🔥 LOAD ALL ADS FROM BACKEND
+  const loadAds = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    setFormMode("edit");
-    setActiveAd({
-      id: foundAd.id || foundAd._id,
-      title: foundAd.title,
-      description: foundAd.description,
-      price: foundAd.price,
-      status: foundAd.status || "active",
-      activationDate: foundAd.activationDate?.split("T")[0] || "",
-      expirationDate: foundAd.expirationDate?.split("T")[0] || "",
-    });
+      const res = await fetch(`${API_BASE}/api/ads`, { headers });
 
-    setIsFormVisible(true);
-  };
-
-  const closeForm = () => {
-    setIsFormVisible(false);
-    setActiveAd(null);
-  };
-
-  // Create or Update Ad
-  const handleFormSubmit = async (formValues) => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-
-    // FIXED: backend requires activationDate + expirationDate
-    const buildAdModel = (id = null) =>
-      new Ads(
-        id,
-        formValues.title,
-        formValues.description,
-        formValues.price,
-        formValues.status,
-        userId,
-        formValues.activationDate,
-        formValues.expirationDate
-      );
-
-    if (formMode === "edit" && activeAd) {
-      const updated = buildAdModel(activeAd.id);
-      await updateData(updated);
-
-      // Update UI
-      setAds((prev) =>
-        prev.map((ad) =>
-          (ad.id || ad._id) === activeAd.id
-            ? { ...ad, ...formValues, id: activeAd.id }
-            : ad
-        )
-      );
-
-      setFilteredAds((prev) =>
-        prev.map((ad) =>
-          (ad.id || ad._id) === activeAd.id
-            ? { ...ad, ...formValues, id: activeAd.id }
-            : ad
-        )
-      );
-    } else {
-      // Create new ad
-      const newAd = buildAdModel(null);
-      const created = await createAdRequest(newAd);
-
-      const normalized = Ads.fromJSON
-        ? Ads.fromJSON(created)
-        : {
-            ...formValues,
-            id: created?.id || created?._id,
-          };
-
-      setAds((prev) => [normalized, ...prev]);
-      setFilteredAds((prev) => [normalized, ...prev]);
-    }
-
-    closeForm();
-  };
-
-  // Delete ad
-  const handleDelete = async (adId) => {
-    if (window.confirm(`Delete ad ${adId}?`)) {
-      await deleteData(adId);
-
-      setAds((prev) => prev.filter((ad) => (ad.id || ad._id) !== adId));
-      setFilteredAds((prev) =>
-        prev.filter((ad) => (ad.id || ad._id) !== adId)
-      );
-
-      if (activeAd && activeAd.id === adId) {
-        closeForm();
+      if (!res.ok) {
+        throw new Error(`Failed to load ads: ${res.status} ${res.statusText}`);
       }
+
+      const allAds = await res.json();
+      // ✅ SHOW ALL ADS (no owner filtering so you can SEE what you create)
+      setAds(allAds);
+    } catch (err) {
+      console.error("Error loading ads:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Disable / Enable ad (frontend only)
-  const handleDisable = (adId) => {
-    setAds((prev) =>
-      prev.map((ad) =>
-        (ad.id || ad._id) === adId
-          ? { ...ad, status: ad.status === "active" ? "disabled" : "active" }
-          : ad
-      )
-    );
+  // Load once when authed
+  useEffect(() => {
+    if (authed) {
+      loadAds();
+    }
+  }, [authed]);
+
+  // ✏️ Form change handler
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // ➕ CREATE or UPDATE AD
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const body = {
+      title: form.title,
+      description: form.description,
+      price: Number(form.price),
+      // backend will handle owner & status (default active)
+    };
+
+    const url = editingId
+      ? `${API_BASE}/api/ads/${editingId}`
+      : `${API_BASE}/api/ads`;
+
+    const method = editingId ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `Failed to save ad (${res.status})`);
+      }
+
+      // reload list from backend so you SEE your new / updated ad
+      await loadAds();
+      setForm(emptyForm);
+      setEditingId(null);
+    } catch (err) {
+      console.error("Error saving ad:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ❌ DELETE AD
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this ad?")) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `Failed to delete ad (${res.status})`);
+      }
+
+      await loadAds();
+    } catch (err) {
+      console.error("Error deleting ad:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🚫 DISABLE AD (uses /api/ads/:id/disable from backend)
+  const handleDisable = async (id) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/${id}/disable`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ status: "inactive" }),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || `Failed to disable ad (${res.status})`);
+      }
+
+      await loadAds();
+    } catch (err) {
+      console.error("Error disabling ad:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4>Manage Ads</h4>
-        <button className="btn btn-primary" onClick={handleAdd} disabled={loading}>
-          Add New Ad
-        </button>
+    <section className="two-column-layout mt-4">
+      {/* LEFT PANEL — CREATE / EDIT FORM */}
+      <div className="panel">
+        <h3>{editingId ? "Edit Listing" : "Create Listing"}</h3>
+
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error.message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <input
+            className="input"
+            name="title"
+            placeholder="Title"
+            value={form.title}
+            onChange={handleChange}
+            required
+          />
+
+          <textarea
+            className="input"
+            name="description"
+            placeholder="Description"
+            value={form.description}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            className="input"
+            type="number"
+            name="price"
+            placeholder="Price"
+            value={form.price}
+            onChange={handleChange}
+            min="0"
+            required
+          />
+
+          <button className="btn btn-primary w-100" type="submit" disabled={loading}>
+            {loading
+              ? "Saving..."
+              : editingId
+              ? "Update Listing"
+              : "Create Listing"}
+          </button>
+        </form>
       </div>
 
-      <AdsForm
-        initialValues={activeAd || undefined}
-        mode={formMode}
-        isOpen={isFormVisible}
-        title={formMode === "edit" ? "Update Ad" : "Create Ad"}
-        onSubmit={handleFormSubmit}
-        onCancel={closeForm}
-      />
+      {/* RIGHT PANEL — ALL ADS (READ, EDIT, DISABLE, DELETE) */}
+      <div className="panel">
+        <h3>My Listings</h3>
 
-      <div className="table-responsive mt-3">
-        <table className="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Price</th>
-              <th>Status</th>
-              <th style={{ width: "230px" }}>Actions</th>
-            </tr>
-          </thead>
+        {loading && ads.length === 0 && <p>Loading ads…</p>}
 
-          <tbody>
-            {filteredAds.map((ad, index) => {
-              const id = ad.id || ad._id || index;
+        {!loading && ads.length === 0 && <p>No ads found yet.</p>}
 
-              return (
-                <tr key={id}>
-                  <td>{id}</td>
-                  <td>{ad.title}</td>
-                  <td>{ad.description}</td>
-                  <td>${ad.price}</td>
+        {ads.map((ad) => (
+          <div key={ad._id} className="my-ads-item">
+            <div>
+              <div className="my-ads-title">{ad.title}</div>
+              <div className="my-ads-meta">${ad.price}</div>
+              <div className="my-ads-meta">
+                Status: {ad.status || "active"}
+              </div>
+            </div>
 
-                  <td>
-                    <span
-                      className={`badge bg-${
-                        ad.status === "active" ? "success" : "secondary"
-                      }`}
-                    >
-                      {ad.status}
-                    </span>
-                  </td>
+            <div className="my-ads-actions">
+              <button
+                className="btn btn-primary btn-small"
+                onClick={() => {
+                  setEditingId(ad._id);
+                  setForm({
+                    title: ad.title || "",
+                    description: ad.description || "",
+                    price: ad.price || "",
+                  });
+                }}
+              >
+                Edit
+              </button>
 
-                  <td>
-                    <button
-                      className="btn btn-sm btn-info me-1"
-                      onClick={() => handleUpdate(id)}
-                    >
-                      Update
-                    </button>
+              <button
+                className="btn btn-warning btn-small"
+                onClick={() => handleDisable(ad._id)}
+              >
+                Disable
+              </button>
 
-                    <button
-                      className="btn btn-sm btn-danger me-1"
-                      onClick={() => handleDelete(id)}
-                    >
-                      Delete
-                    </button>
-
-                    <button
-                      className="btn btn-sm btn-warning"
-                      onClick={() => handleDisable(id)}
-                    >
-                      {ad.status === "active" ? "Disable" : "Enable"}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-
-        </table>
+              <button
+                className="btn btn-danger btn-small"
+                onClick={() => handleDelete(ad._id)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 };
 
