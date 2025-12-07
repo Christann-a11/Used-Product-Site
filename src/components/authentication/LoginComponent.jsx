@@ -34,7 +34,7 @@ const LoginComponent = () => {
       }
 
       //Pass real token to the hook
-      login(data.token, data.id);
+      login(data.token, data.user.id);
 
       // Success
       navigate("/admin");
