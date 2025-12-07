@@ -3,7 +3,7 @@ import { API_BASE } from "../config";
 
 // Anonymous user asks a question
 export async function askQuestion(adId, text) {
-  const res = await fetch(`${API_BASE}/api/questions/${adId}/ask`, {
+  const res = await fetch(`${API_BASE}/api/ads/${adId}/questions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text })

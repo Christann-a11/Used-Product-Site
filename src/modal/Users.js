@@ -1,12 +1,12 @@
 class Users {
     static modelName = 'users';
 
-    constructor(firstName="", lastName="", email="", userName="", password = null, id = null, admin = false) {
+    constructor(firstName="", lastName="", email="", username="", password = null, id = null, admin = false) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.userName = userName;
+        this.username = username;
         this.password = password;
         this.admin = admin;
         this.modelName = Users.modelName;
@@ -41,7 +41,7 @@ class Users {
             firstName: this.firstName,
             lastName: this.lastName,
             email: this.email,
-            username: this.userName,
+            username: this.username,
             password: this.password,
             admin: this.admin
              

@@ -136,7 +136,7 @@ const AdsComponent = () => {
                         <strong>A:</strong> {q.answer}
                       </p>
                     ) : (
-                      // Only ad owner can answer
+                      // Only ad owner can answer`
                       selectedAd.owner === localStorage.getItem("userId") && (
                         <form
                           onSubmit={(e) => handleAnswer(e, q._id)}

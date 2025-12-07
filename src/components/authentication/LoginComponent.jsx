@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthentication } from "../../Controllers/UseAuthentication";
+import { API_BASE } from "../../config";
 
 const LoginComponent = () => {
   const [email, setEmail] = useState("");
@@ -20,7 +21,20 @@ const LoginComponent = () => {
 
     try {
       // Call backend login
-      await login(email, password);
+      const res = await fetch(`${API_BASE}/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if(!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      //Pass real token to the hook
+      login(data.token, data.id);
 
       // Success
       navigate("/admin");

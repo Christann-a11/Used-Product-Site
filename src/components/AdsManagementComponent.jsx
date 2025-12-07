@@ -36,7 +36,11 @@ const AdsManagementComponent = () => {
   const loadAds = async () => {
     const res = await fetch(`${API_BASE}/api/ads`, { headers });
     const allAds = await res.json();
-    const mine = allAds.filter((ad) => ad.owner === userId);
+    
+    const mine = allAds.filter((ad) => {
+      const ownerId = ad.owner?._id || ad.owner;
+      return String(ownerId) === String(userId);
+    })
     setAds(mine);
   };
 
@@ -81,22 +85,41 @@ const AdsManagementComponent = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this ad?")) return;
+  // const handleDelete = async (id) => {
+  //   if (!window.confirm("Disable this ad?")) return;
 
-    await fetch(`${API_BASE}/api/ads/${id}`, {
-      method: "DELETE",
-      headers,
-    });
+  //   await fetch(`${API_BASE}/api/ads/${id}`, {
+  //     method: "DELETE",
+  //     headers,
+  //   });
 
-    loadAds();
-  };
+  //   loadAds();
+  // };
 
-  const handleDisable = async (id) => {
-    await fetch(`${API_BASE}/api/ads/${id}/disable`, {
-      method: "PUT",
-      headers,
-    });
+  const handleDisable = async (id, currentStatus) => {
+    // Preventive check if already inactive
+    if(currentStatus === 'inactive') return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ads/${id}/disable`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ status: "inactive" }),
+      });
+
+      const data = await res.json();
+
+      if(res.ok) {
+        setMessage("AD sucesssfully disabled.");
+        loadAds();
+      } else {
+        setMessage(data.message || "Failed to disable ad.");
+      }
+    } catch (error) {
+      console.error(err);
+      setMessage("Error connecting to server.");
+    }
+    
 
     loadAds();
   };
@@ -177,7 +200,7 @@ const AdsManagementComponent = () => {
               <button
                 className="btn-edit"
                 onClick={() => {
-                  setEditingId(ad._id);
+                  setEditingId(ad._id || ad.id);
                   setForm({
                     title: ad.title,
                     description: ad.description,
@@ -188,19 +211,17 @@ const AdsManagementComponent = () => {
                 Edit
               </button>
 
-              <button
+              {ad.status !== 'inactive' ? (
+                <button
                 className="btn-disable"
-                onClick={() => handleDisable(ad._id)}
+                onClick={() => handleDisable(ad._id || ad.id, ad.status)}
               >
                 Disable
               </button>
-
-              <button
-                className="btn-delete"
-                onClick={() => handleDelete(ad._id)}
-              >
-                Delete
-              </button>
+              ) : (
+                <span className="badge bg-secondary ms-2">Disabled</span>
+              )}
+             
             </div>
           </div>
         ))}
